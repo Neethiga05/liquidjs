@@ -44,7 +44,7 @@ const renewalContext = {
 };
 
 
-app.get('/subscriptionrenewal', async (req, res) => {
+app.get('/subscription_renewal', async (req, res) => {
     try {
         const tpl = engine.parse(renewalTemplate);
         const output = await engine.render(tpl, renewalContext);
@@ -56,5 +56,5 @@ app.get('/subscriptionrenewal', async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running: http://localhost:${port}/subscriptionrenewal`);
+    console.log(`Server running: http://localhost:${port}/subscription_renewal`);
 });
