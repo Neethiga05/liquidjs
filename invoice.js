@@ -188,5 +188,4 @@ app.get('/invoice', async (req, res) => {
 
 app.listen(port, () => {
     console.log(`Invoice route: http://localhost:${port}/invoice`);
-    console.log(`Order Receipt route: http://localhost:${port}/order-receipt`);
 });

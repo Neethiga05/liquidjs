@@ -63,7 +63,7 @@ const receiptContext = {
     }
 };
 
-app.get('/order-receipt', async (req, res) => {
+app.get('/orderreceipt', async (req, res) => {
     try {
         const tpl = engine.parse(receiptTemplate);
         const output = await engine.render(tpl, receiptContext);
@@ -75,5 +75,5 @@ app.get('/order-receipt', async (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running: http://localhost:${port}/order-receipt`);
+    console.log(`Server running: http://localhost:${port}/orderreceipt`);
 });
