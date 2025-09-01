@@ -2,33 +2,123 @@ import express from 'express';
 import { Liquid } from 'liquidjs';
 
 const app = express();
-const port = 3000;
+const port = 5000;
 
-const engine = new Liquid({
-    cache: false,
-    extname: '.liquid',
-    root: process.cwd()
-});
+// Initialize LiquidJS
+const engine = new Liquid({ cache: false, extname: '.liquid', root: process.cwd() });
 
-// Filters
-engine.registerFilter('money', (value) => {
-    if (value === null || typeof value === 'undefined' || isNaN(value)) {
-        return '0.00';
-    }
-    return Number(value).toFixed(2);
-});
+// ------------------ Filters ------------------
+engine.registerFilter('money', (value) =>
+    isNaN(value) ? '$0.00' : `$${Number(value).toFixed(2)}`
+);
 
 engine.registerFilter('sum', (arr) => {
     if (!Array.isArray(arr)) return 0;
     return arr.reduce((acc, val) => acc + Number(val || 0), 0);
 });
 
-// ================== ORDER RECEIPT ==================
+// ------------------ SUBSCRIPTION RENEWAL ------------------
+
+const renewalTemplate = `
+Subscription Renewal Notice for {{ Customer.FirstName | upcase }}
+
+Your '{{ Subscription.Name }}' plan, which renews on {{ Subscription.TermEndDate | date: "%B %d, %Y" }}, includes the following features:
+
+{% for feature in Subscription.Features %}
+- {{ feature }}
+{% endfor %}
+
+Please ensure your payment method is up to date.
+`;
+
+const renewalContext = {
+    Customer: {
+        FirstName: "Alex",
+        LastName: "Rivera",
+        Email: "alex.r@example.com"
+    },
+    Subscription: {
+        Id: "8ad09be48a22193c018a38a7295064ac",
+        Name: "Ford Connected Charge Station",
+        Status: "Past Due",
+        TermEndDate: new Date("2025-09-30"),  // <-- convert to Date
+        RenewalPrice: 15.00,
+        Currency: "USD",
+        Features: [
+            "Remote Power Management",
+            "Usage Analytics",
+            "Scheduled Charging"
+        ]
+    }
+};
+
+
+app.get('/subscription_renewal', async (req, res) => {
+    try {
+        const tpl = engine.parse(renewalTemplate);
+        const output = await engine.render(tpl, renewalContext);
+        res.type('text/plain').send(output);
+    } catch (err) {
+        console.error("LiquidJS rendering error:", err);
+        res.status(500).send("Error rendering subscription renewal.");
+    }
+});
+
+//=== SUBSCRIPTION STATUS ===
+const statusTemplate = `
+Hello {{ Customer.FirstName }},
+
+{% if Subscription.Status == 'Active' %}
+Your subscription is active and everything looks good for your upcoming renewal.
+{% elsif Subscription.Status == 'Past Due' %}
+Our records show your account is past due. Please update your payment information to ensure uninterrupted service.
+{% else %}
+There is an issue with your subscription. Please contact support.
+{% endif %}
+
+Subscription ID: {{ Subscription.Id }}
+`;
+
+const statusContext = {
+    "Customer": {
+        "FirstName": "Alex",
+        "LastName": "Rivera",
+        "Email": "alex.r@example.com"
+    },
+    "Subscription": {
+        "Id": "8ad09be48a22193c018a38a7295064ac",
+        "Name": "Ford Connected Charge Station",
+        "Status": "Past Due",
+        "TermEndDate": "2025-09-30",
+        "RenewalPrice": 15.00,
+        "Currency": "USD",
+        "Features": [
+            "Remote Power Management",
+            "Usage Analytics",
+            "Scheduled Charging"
+        ]
+    }
+}
+
+app.get('/subscription_status', async (req, res) => {
+    try {
+        const tpl = engine.parse(statusTemplate);
+        const output = await engine.render(tpl, statusContext);
+        res.type('text/plain').send(output);
+    } catch (err) {
+        console.error("LiquidJS rendering error:", err);
+        res.status(500).send("Error rendering subscription status.");
+    }
+});
+
+
+// ------------------ ORDER RECEIPT ------------------
 const receiptTemplate = `
 Order Receipt for {{ Customer.FirstName }} {{ Customer.LastName }}
+
 ---
 Order Details
----
+
 Order ID: {{ Order.Id }}
 Order Date: {{ Order.Date }}
 Payment Status: {{ Order.Status }}
@@ -76,7 +166,7 @@ const receiptContext = {
     }
 };
 
-app.get('/order-receipt', async (req, res) => {
+app.get('/orderreceipt', async (req, res) => {
     try {
         const tpl = engine.parse(receiptTemplate);
         const output = await engine.render(tpl, receiptContext);
@@ -87,7 +177,7 @@ app.get('/order-receipt', async (req, res) => {
     }
 });
 
-// ================== INVOICE ==================
+// ------------------ INVOICE ------------------
 const invoiceTemplate = `
 {% assign customer_name = Account.FirstName %}
 {% assign due_date_formatted = Invoice.DueDate | date: "%B %d, %Y" %}
@@ -186,6 +276,11 @@ app.get('/invoice', async (req, res) => {
     }
 });
 
+
+// ------------------ START SERVER ------------------
 app.listen(port, () => {
-    console.log(`Invoice route: http://localhost:${port}/invoice`);
+    console.log(`Subscription Renewal: http://localhost:${port}/subscription_renewal`);
+    console.log(`Subscription Status: http://localhost:${port}/subscription_status`);
+    console.log(`Order Receipt: http://localhost:${port}/orderreceipt`);
+    console.log(`Invoice: http://localhost:${port}/invoice`);
 });

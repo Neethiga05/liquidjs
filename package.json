@@ -2,10 +2,10 @@
   "name": "liquidjs",
   "version": "1.0.0",
   "type": "module",
-  "description": "A Node.js application to render a LiquidJS subscription renewal template.",
-  "main": "subscription_renewal.js",
+  "description": "A Node.js application to render a LiquidJS templates.",
+  "main": "app.js",
   "scripts": {
-    "dev": "node subscription_renewal.js"
+    "dev": "node app.js"
   },
   "dependencies": {
     "express": "^4.18.2",
