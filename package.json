@@ -1,0 +1,14 @@
+{
+  "name": "liquidjs",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A Node.js application to render a LiquidJS invoice template.",
+  "main": "invoice.js",
+  "scripts": {
+    "dev": "node invoice.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "liquidjs": "^10.9.1"
+  }
+}
